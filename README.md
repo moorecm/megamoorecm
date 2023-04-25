@@ -10,6 +10,15 @@ fun with it!
 
 ## Quickstart
 
+Invoke the game via:
 ```
 bazel run main
+```
+
+Run formatting and linting via:
+```
+bazel run buildifier
+```
+```
+bazel run black [files...]
 ```
