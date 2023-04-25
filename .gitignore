@@ -2,3 +2,4 @@ bazel-bin
 bazel-megamoorecm
 bazel-out
 bazel-testlogs
+__pycache__
