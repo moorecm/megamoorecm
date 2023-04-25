@@ -1,5 +1,6 @@
 #
 # Python
+# https://github.com/bazelbuild/rules_python
 #
 bazel_dep(name = "rules_python", version = "0.21.0")
 
@@ -26,6 +27,7 @@ register_toolchains(
 
 #
 # Buildifier
+# https://github.com/bazelbuild/buildtools/tree/master/buildifier
 #
 bazel_dep(
     name = "buildifier_prebuilt",
