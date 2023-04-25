@@ -1,12 +1,13 @@
+#
+# Python
+#
 bazel_dep(name = "rules_python", version = "0.21.0")
 
 pip = use_extension("@rules_python//python:extensions.bzl", "pip")
-
 pip.parse(
     name = "pip",
     requirements_lock = "//:requirements_lock.txt",
 )
-
 use_repo(pip, "pip")
 
 # (Optional) Register a specific python toolchain instead of using the host version
@@ -17,9 +18,17 @@ python.toolchain(
     name = "python3_8",
     python_version = "3.8",
 )
-
 use_repo(python, "python3_8_toolchains")
 
 register_toolchains(
     "@python3_8_toolchains//:all",
+)
+
+#
+# Buildifier
+#
+bazel_dep(
+    name = "buildifier_prebuilt",
+    version = "6.1.0",
+    dev_dependency = True,
 )
