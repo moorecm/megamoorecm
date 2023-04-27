@@ -1,4 +1,4 @@
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_file")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 #
 # Megaman Spritesheet
@@ -7,4 +7,14 @@ http_file(
     name = "8bitmegaman",
     sha256 = "726adce986683742374c10c1bd7df26e5b05029e14fef1c5e01295e70e3a736d",
     url = "https://www.sprites-inc.co.uk/files/Classic/Megaman/MM8/8bitmegaman.png",
+)
+
+#
+# Tiled (MacOS)
+#
+http_archive(
+    name = "tiled",
+    build_file_content = 'filegroup(name = "all", srcs=glob(["**/*"]), visibility=["//visibility:public"])',
+    sha256 = "75e3d8ccb4fb9a7d5f5fd964cead157b01580f79124e433a4786378114abaeab",
+    url = "https://github.com/mapeditor/tiled/releases/download/v1.10.1/Tiled-1.10.1_macOS-10.14+.zip",
 )

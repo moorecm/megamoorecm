@@ -14,6 +14,12 @@ py_binary(
     ],
 )
 
+sh_binary(
+    name = "tiled",
+    srcs = ["wrappers/tiled.sh"],
+    data = ["@tiled//:all"],
+)
+
 py_binary(
     name = "black",
     srcs = ["wrappers/black-wrapper.py"],

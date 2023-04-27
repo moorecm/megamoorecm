@@ -22,3 +22,8 @@ bazel run buildifier
 ```
 bazel run black [files...]
 ```
+
+Run Tiled (Mac OS), a tile map editor, via:
+```
+bazel run tiled
+```
