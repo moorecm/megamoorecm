@@ -12,7 +12,7 @@ fun with it!
 
 Invoke the game via:
 ```
-bazel run main
+bazel run game:main
 ```
 
 Run formatting and linting via:

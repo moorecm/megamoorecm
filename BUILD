@@ -1,19 +1,6 @@
 load("@buildifier_prebuilt//:rules.bzl", "buildifier")
 load("@pip//:requirements.bzl", "requirement")
 
-py_binary(
-    name = "main",
-    srcs = [
-        "main.py",
-    ],
-    data = [
-        "@8bitmegaman//file",
-    ],
-    deps = [
-        requirement("pygame"),
-    ],
-)
-
 sh_binary(
     name = "tiled",
     srcs = ["wrappers/tiled.sh"],
