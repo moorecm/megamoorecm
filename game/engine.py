@@ -1,11 +1,14 @@
 import pygame
 
+import player
+
 
 class Engine:
     def __init__(self):
         pygame.init()
         self.screen = pygame.display.set_mode([320, 200])
         self.clock = pygame.time.Clock()
+        self.player = player.Player()
 
     def __del__(self):
         pygame.quit()
@@ -25,7 +28,7 @@ class Engine:
             #
             # update state
             #
-            pass
+            self.screen.blit(self.player.image, self.player.rect)
             #
             # render
             #

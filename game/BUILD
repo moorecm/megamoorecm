@@ -6,6 +6,7 @@ py_binary(
         "main.py",
     ],
     data = [
+        "8bitmegaman.json",
         "@8bitmegaman//file",
     ],
     deps = [
