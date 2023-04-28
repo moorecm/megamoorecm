@@ -8,7 +8,9 @@ class Engine:
         pygame.init()
         self.screen = pygame.display.set_mode([320, 200])
         self.clock = pygame.time.Clock()
+        self.players = pygame.sprite.Group()
         self.player = player.Player()
+        self.players.add(self.player)
 
     def __del__(self):
         pygame.quit()
@@ -28,10 +30,11 @@ class Engine:
             #
             # update state
             #
-            self.screen.blit(self.player.image, self.player.rect)
+            self.players.update()
             #
             # render
             #
+            self.players.draw(self.screen)
             pygame.display.flip()
             #
             # synchronize

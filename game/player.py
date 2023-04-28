@@ -6,6 +6,7 @@ import json
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
+
         self.spritesheet = pygame.image.load(
             "external/8bitmegaman/file/8bitmegaman.png"
         ).convert()
@@ -19,4 +20,5 @@ class Player(pygame.sprite.Sprite):
                 self.spritemodel["ready"]["h"],
             )
         )
+
         self.rect = pygame.Rect(160 - 16, 100 - 16, 32, 32)
