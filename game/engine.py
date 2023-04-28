@@ -26,6 +26,8 @@ class Engine:
             # handle events
             #
             for event in pygame.event.get():
+                self.player.handle(event)
+
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         done = True
