@@ -24,3 +24,7 @@ Run Tiled (Mac OS), a tile map editor, via:
 ```
 bazel run //:tiled
 ```
+
+## Documentation
+
+The latest Pygame docs are [here](https://www.pygame.org/docs/).
