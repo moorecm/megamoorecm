@@ -42,4 +42,4 @@ class Engine:
             #
             # synchronize
             #
-            self.clock.tick(30)
+            self.clock.tick(60)
