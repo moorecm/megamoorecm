@@ -33,68 +33,98 @@ class Player(pygame.sprite.Sprite):
 
         # initial position
         self.spawn(160 - 12, 100 - 16)
+        # initial time
+        self.ticks = pygame.time.get_ticks()
 
         # initial state
-        self.set_state("idle", since_ms=-2000)  # make the first blink sooner
+        self.state = None
+        self.set_state("idle", -2000)  # make the first blink sooner
 
     def handle_events(self, events):
+        # singular events (key up, key down, etc.)
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RIGHT:
-                    self.apply_force(x=1)
+                    pass
                 elif event.key == pygame.K_LEFT:
-                    self.apply_force(x=-1)
+                    pass
                 elif event.key == pygame.K_UP:
                     pass
+        # pressed keys
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.apply_force(x=-0.1)
+        if keys[pygame.K_RIGHT]:
+            self.apply_force(x=0.1)
+        if keys[pygame.K_UP]:
+            pass
 
     def spawn(self, x, y):
-        self.x_speed = 0
-        self.y_speed = 0
+        self.dx = 0.0
+        self.dy = 0.0
+        self.x = float(x)
+        self.y = float(y)
         self.rect = pygame.Rect(x, y, 32, 32)
 
     def set_state(self, state, since_ms=None):
-        self.state = state
-        self.since = since_ms if since_ms is not None else pygame.time.get_ticks()
+        if self.state != state:
+            self.state = state
+            self.since = since_ms if since_ms is not None else pygame.time.get_ticks()
 
     def apply_force(self, x=0, y=0):
-        self.x_speed += x
+        self.dx += x
+        if self.dx < -0.2:
+            self.dx = -0.2
+        elif self.dx > 0.2:
+            self.dx = 0.2
 
-        # detect state changes
-        if self.x_speed == 0 and x != 0:
-            # just stopped
-            self.set_state("idle")
-        elif (self.x_speed < 0 and self.x_speed - x < 0) or (
-            self.x_speed > 0 and self.x_speed - x > 0
-        ):
-            pass  # no state change
-        else:
-            # just started running
-            self.set_state("running")
-
-        # facing left or right?
-        if self.x_speed < 0:
-            self.flip = True
-        elif self.x_speed > 0:
-            self.flip = False
-
-        self.y_speed += y
+        self.dy += y
+        if self.dy < -0.2:
+            self.dy = -0.2
+        elif self.dy > 0.2:
+            self.dy = 0.2
 
     def update_position(self):
+        dt = pygame.time.get_ticks() - self.ticks
+
         # update x position
-        self.rect.x += self.x_speed
+        prev_x = self.x
+        self.x = self.x + self.dx * dt
         # check x boundaries
-        if self.rect.x < 0:
-            self.rect.x = 0
-        elif self.rect.x > 320 - 24:
-            self.rect.x = 320 - 24
+        if self.x < 0:
+            self.x = 0
+        elif self.x > 320 - 24:
+            self.x = 320 - 24
+        self.rect.x = int(self.x)
+
+        # detect state changes
+        if prev_x == self.x:
+            # no movement
+            self.set_state("idle")
+        else:
+            # running
+            self.set_state("running")
 
         # update y position
-        self.rect.y += self.y_speed
+        prev_y = self.y
+        self.y = self.y + self.dy * dt
         # check y boundaries
-        if self.rect.y < 0:
-            self.rect.y = 0
-        elif self.rect.y > 200 - 32:
-            self.rect.y = 200 - 32
+        if self.y < 0:
+            self.y = 0
+        elif self.y > 200 - 32:
+            self.y = 200 - 32
+        self.rect.y = int(self.y)
+
+    def world_physics(self):
+        # friction
+        if self.dx < 0:
+            self.apply_force(x=0.1)
+        elif self.dx > 0:
+            self.apply_force(x=-0.1)
+        # gravity
+        # self.apply_force(y=0.2)
+        # time
+        self.ticks = pygame.time.get_ticks()
 
     def select_frame(self):
         now = pygame.time.get_ticks()
@@ -107,6 +137,7 @@ class Player(pygame.sprite.Sprite):
                 self.frame = "blink"
                 if now - self.since > blink_interval_ms + blink_duration_ms:
                     self.frame = "ready"
+                    self.since = pygame.time.get_ticks()
             else:
                 self.frame = "ready"
         elif self.state == "running":
@@ -118,6 +149,12 @@ class Player(pygame.sprite.Sprite):
                 self.frame = "run2"
             elif n == 2:
                 self.frame = "run3"
+
+        # facing left or right?
+        if self.dx < 0:
+            self.flip = True
+        elif self.dx > 0:
+            self.flip = False
 
     def create_image(self):
         self.image = (
@@ -131,3 +168,4 @@ class Player(pygame.sprite.Sprite):
         self.update_position()
         self.select_frame()
         self.create_image()
+        self.world_physics()
