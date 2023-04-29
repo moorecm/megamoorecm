@@ -28,6 +28,7 @@ class Player(pygame.sprite.Sprite):
             )
 
         self.frame = "ready"
+        self.animation_counter = 0
         self.image = self.images[self.frame]
         self.flip = False
 
@@ -36,7 +37,7 @@ class Player(pygame.sprite.Sprite):
 
         # initial state
         self.state = None
-        self.set_state("idle", -2000)  # make the first blink sooner
+        self.set_state("idle")
 
     def handle_events(self, events):
         # singular events (key up, key down, etc.)
@@ -64,10 +65,10 @@ class Player(pygame.sprite.Sprite):
         self.y = float(y)
         self.rect = pygame.Rect(x, y, 32, 32)
 
-    def set_state(self, state, since_ms=None):
+    def set_state(self, state):
         if self.state != state:
             self.state = state
-            self.since = since_ms if since_ms is not None else pygame.time.get_ticks()
+            self.animation_counter = 0
 
     def apply_force(self, x=0, y=0):
         self.dx += x
@@ -120,28 +121,30 @@ class Player(pygame.sprite.Sprite):
         # gravity
         # self.apply_force(y=0.2)
 
-    def select_frame(self):
-        now = pygame.time.get_ticks()
-        # select frame
+    def select_frame(self, dt):
+        # animate
         if self.state == "idle":
             # blink periodically
-            blink_interval_ms = 4000
-            blink_duration_ms = 180
-            if now - self.since > blink_interval_ms:
+            self.animation_counter += dt
+            ms_per_frame = 100  # blink lasts 1 frame x 100 ms
+            number_of_frames = 50  # blink every 50 x 100 ms (every 5s)
+            i = int(self.animation_counter // ms_per_frame) % number_of_frames
+            if i == 16:
                 self.frame = "blink"
-                if now - self.since > blink_interval_ms + blink_duration_ms:
-                    self.frame = "ready"
-                    self.since = pygame.time.get_ticks()
             else:
                 self.frame = "ready"
         elif self.state == "running":
-            # animate
-            n = (now - self.since) // 100 % 4
-            if n == 0:
+            # run
+            self.animation_counter += dt
+            ms_per_frame = 100
+            number_of_frames = 4
+            i = int(self.animation_counter // ms_per_frame) % number_of_frames
+            # alternate run1 -> run2 -> run3 -> run2 and repeat
+            if i == 0:
                 self.frame = "run1"
-            elif n == 1 or n == 3:
+            elif i == 1 or i == 3:
                 self.frame = "run2"
-            elif n == 2:
+            elif i == 2:
                 self.frame = "run3"
 
         # facing left or right?
@@ -160,6 +163,6 @@ class Player(pygame.sprite.Sprite):
     def update(self, dt, events=()):
         self.handle_events(events)
         self.update_position(dt)
-        self.select_frame()
+        self.select_frame(dt)
         self.create_image()
         self.world_physics()
