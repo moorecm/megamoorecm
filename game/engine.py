@@ -36,6 +36,7 @@ class Engine:
             #
             # render
             #
+            self.screen.fill((0, 0, 0))
             self.players.draw(self.screen)
             pygame.display.flip()
             #
