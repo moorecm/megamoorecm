@@ -34,7 +34,7 @@ class Player(pygame.sprite.Sprite):
         # initial speed and position
         self.x_speed = 0
         self.y_speed = 0
-        self.rect = pygame.Rect(160 - 16, 100 - 16, 32, 32)
+        self.rect = pygame.Rect(160 - 12, 100 - 16, 32, 32)
 
         # initial state
         self.set_state("idle", since_ms=-2000)  # make the first blink sooner
@@ -78,9 +78,20 @@ class Player(pygame.sprite.Sprite):
     def update(self):
         now = pygame.time.get_ticks()
 
-        # update position
+        # update x position
         self.rect.x += self.x_speed
+        # check x boundaries
+        if self.rect.x < 0:
+            self.rect.x = 0
+        elif self.rect.x > 320 - 24:
+            self.rect.x = 320 - 24
+        # update y position
         self.rect.y += self.y_speed
+        # check y boundaries
+        if self.rect.y < 0:
+            self.rect.y = 0
+        elif self.rect.y > 200 - 32:
+            self.rect.y = 200 - 32
 
         # select frame
         if self.state == "idle":
