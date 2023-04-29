@@ -36,26 +36,35 @@ class Player(pygame.sprite.Sprite):
         self.y_speed = 0
         self.rect = pygame.Rect(160 - 16, 100 - 16, 32, 32)
 
-        # blink animation
-        self.blink_interval_ms = 4000
-        self.blink_duration_ms = 180
-        self._reset_idle_timer(idle_ms=-2000)  # make the first blink sooner
-        # running animation
-        self.running_since = 0
+        # initial state
+        self.set_state("idle", since_ms=-2000)  # make the first blink sooner
 
-    def _reset_idle_timer(self, idle_ms=None):
-        self.idle_since = idle_ms if idle_ms is not None else pygame.time.get_ticks()
+    def set_state(self, state, since_ms=None):
+        self.state = state
+        self.since = since_ms if since_ms is not None else pygame.time.get_ticks()
 
     def _move(self, x=0, y=0):
-        if self.x_speed == 0 and x != 0:
-            self.running_since = pygame.time.get_ticks()
         self.x_speed += x
+
+        # detect state changes
+        if self.x_speed == 0 and x != 0:
+            # just stopped
+            self.set_state("idle")
+        elif (self.x_speed < 0 and self.x_speed - x < 0) or (
+            self.x_speed > 0 and self.x_speed - x > 0
+        ):
+            pass  # no state change
+        else:
+            # just started running
+            self.set_state("running")
+
+        # facing left or right?
         if self.x_speed < 0:
             self.flip = True
         elif self.x_speed > 0:
             self.flip = False
+
         self.y_speed += y
-        self._reset_idle_timer()
 
     def handle(self, event):
         if event.type == pygame.KEYDOWN:
@@ -64,33 +73,35 @@ class Player(pygame.sprite.Sprite):
             elif event.key == pygame.K_LEFT:
                 self._move(x=-1)
             elif event.key == pygame.K_UP:
-                self._move()
+                pass
 
     def update(self):
         now = pygame.time.get_ticks()
 
-        if self.x_speed != 0 or self.y_speed != 0:  # in motion
-            # move sprite
-            self.rect.x += self.x_speed
-            self.rect.y += self.y_speed
+        # update position
+        self.rect.x += self.x_speed
+        self.rect.y += self.y_speed
+
+        # select frame
+        if self.state == "idle":
+            # blink periodically
+            blink_interval_ms = 4000
+            blink_duration_ms = 180
+            if now - self.since > blink_interval_ms:
+                self.frame = "blink"
+                if now - self.since > blink_interval_ms + blink_duration_ms:
+                    self.frame = "ready"
+            else:
+                self.frame = "ready"
+        elif self.state == "running":
             # animate
-            n = int((now - self.running_since) / 100) % 4
-            print(n)
+            n = (now - self.since) // 100 % 4
             if n == 0:
                 self.frame = "run1"
             elif n == 1 or n == 3:
                 self.frame = "run2"
             elif n == 2:
                 self.frame = "run3"
-        elif self.x_speed == 0 and self.y_speed == 0:  # stopped
-            self.frame = "ready"
-
-        if now - self.idle_since > self.blink_interval_ms:  # idle
-            # blink periodically
-            self.frame = "blink"
-            if now - self.idle_since > self.blink_interval_ms + self.blink_duration_ms:
-                self._reset_idle_timer()
-                self.frame = "ready"
 
         self.image = self.images[self.frame]
 
