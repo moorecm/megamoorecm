@@ -16,7 +16,9 @@ class Engine:
     def __del__(self):
         pygame.quit()
 
-    def update(self, events=None):
+    def update(self, dt, events=None):
+        pygame.display.set_caption(f"{self.clock.get_fps():.1f} FPS")
+
         if events is None:
             events = pygame.event.get()
 
@@ -28,17 +30,17 @@ class Engine:
             ):
                 self.done = True
 
-        self.players.update(events=events)
+        self.players.update(dt=dt, events=events)
 
     def draw(self):
         self.screen.fill((0, 0, 0))
         self.players.draw(self.screen)
 
         pygame.display.flip()
-        self.clock.tick(self.fps)
 
     def loop(self):
         self.done = False
         while not self.done:
-            self.update()
+            dt = self.clock.tick(self.fps)
+            self.update(dt=dt)
             self.draw()

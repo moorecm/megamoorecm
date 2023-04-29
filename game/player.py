@@ -33,8 +33,6 @@ class Player(pygame.sprite.Sprite):
 
         # initial position
         self.spawn(160 - 12, 100 - 16)
-        # initial time
-        self.ticks = pygame.time.get_ticks()
 
         # initial state
         self.state = None
@@ -84,9 +82,7 @@ class Player(pygame.sprite.Sprite):
         elif self.dy > 0.2:
             self.dy = 0.2
 
-    def update_position(self):
-        dt = pygame.time.get_ticks() - self.ticks
-
+    def update_position(self, dt):
         # update x position
         prev_x = self.x
         self.x = self.x + self.dx * dt
@@ -123,8 +119,6 @@ class Player(pygame.sprite.Sprite):
             self.apply_force(x=-0.1)
         # gravity
         # self.apply_force(y=0.2)
-        # time
-        self.ticks = pygame.time.get_ticks()
 
     def select_frame(self):
         now = pygame.time.get_ticks()
@@ -163,9 +157,9 @@ class Player(pygame.sprite.Sprite):
             else self.images[self.frame]
         )
 
-    def update(self, events=()):
+    def update(self, dt, events=()):
         self.handle_events(events)
-        self.update_position()
+        self.update_position(dt)
         self.select_frame()
         self.create_image()
         self.world_physics()
