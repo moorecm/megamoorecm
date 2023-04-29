@@ -1,7 +1,6 @@
 import pygame
 
 import json
-import time
 
 
 class Player(pygame.sprite.Sprite):
@@ -34,24 +33,39 @@ class Player(pygame.sprite.Sprite):
         self.image = self.images[self.frame]
         self.flip = False
 
+        # starting position
         self.rect = pygame.Rect(160 - 16, 100 - 16, 32, 32)
 
-        self.time = time.time()
+        # blink animation
+        self.blink_interval = 4000
+        self.blink_duration = 180
+        self._reset_blink_timer(last_blink=-2000)  # make the first blink sooner
+
+    def _reset_blink_timer(self, last_blink=None):
+        self.last_blink = (
+            last_blink if last_blink is not None else pygame.time.get_ticks()
+        )
+
+    def _player_moved(self):
+        self._reset_blink_timer()
 
     def handle(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_RIGHT:
                 self.flip = False
+                self._player_moved()
             elif event.key == pygame.K_LEFT:
                 self.flip = True
+                self._player_moved()
 
     def update(self):
+        now = pygame.time.get_ticks()
+
         # blink periodically
-        per_second_interval = 8
-        count = 24
-        counter = int((time.time() - self.time) * per_second_interval % count)
-        if counter == 8:
+        if now - self.last_blink > self.blink_interval:
             self.frame = 1
+            if now - self.last_blink > self.blink_interval + self.blink_duration:
+                self._reset_blink_timer()
         else:
             self.frame = 0
         self.image = self.images[self.frame]
