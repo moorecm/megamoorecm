@@ -31,19 +31,32 @@ class Player(pygame.sprite.Sprite):
         self.image = self.images[self.frame]
         self.flip = False
 
-        # initial speed and position
-        self.x_speed = 0
-        self.y_speed = 0
-        self.rect = pygame.Rect(160 - 12, 100 - 16, 32, 32)
+        # initial position
+        self.spawn(160 - 12, 100 - 16)
 
         # initial state
         self.set_state("idle", since_ms=-2000)  # make the first blink sooner
+
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    self.apply_force(x=1)
+                elif event.key == pygame.K_LEFT:
+                    self.apply_force(x=-1)
+                elif event.key == pygame.K_UP:
+                    pass
+
+    def spawn(self, x, y):
+        self.x_speed = 0
+        self.y_speed = 0
+        self.rect = pygame.Rect(x, y, 32, 32)
 
     def set_state(self, state, since_ms=None):
         self.state = state
         self.since = since_ms if since_ms is not None else pygame.time.get_ticks()
 
-    def _move(self, x=0, y=0):
+    def apply_force(self, x=0, y=0):
         self.x_speed += x
 
         # detect state changes
@@ -66,18 +79,7 @@ class Player(pygame.sprite.Sprite):
 
         self.y_speed += y
 
-    def handle(self, event):
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_RIGHT:
-                self._move(x=1)
-            elif event.key == pygame.K_LEFT:
-                self._move(x=-1)
-            elif event.key == pygame.K_UP:
-                pass
-
-    def update(self):
-        now = pygame.time.get_ticks()
-
+    def update_position(self):
         # update x position
         self.rect.x += self.x_speed
         # check x boundaries
@@ -85,6 +87,7 @@ class Player(pygame.sprite.Sprite):
             self.rect.x = 0
         elif self.rect.x > 320 - 24:
             self.rect.x = 320 - 24
+
         # update y position
         self.rect.y += self.y_speed
         # check y boundaries
@@ -93,6 +96,8 @@ class Player(pygame.sprite.Sprite):
         elif self.rect.y > 200 - 32:
             self.rect.y = 200 - 32
 
+    def select_frame(self):
+        now = pygame.time.get_ticks()
         # select frame
         if self.state == "idle":
             # blink periodically
@@ -114,7 +119,15 @@ class Player(pygame.sprite.Sprite):
             elif n == 2:
                 self.frame = "run3"
 
-        self.image = self.images[self.frame]
+    def create_image(self):
+        self.image = (
+            pygame.transform.flip(self.images[self.frame], flip_x=True, flip_y=False)
+            if self.flip
+            else self.images[self.frame]
+        )
 
-        if self.flip:
-            self.image = pygame.transform.flip(self.image, flip_x=True, flip_y=False)
+    def update(self, events=()):
+        self.handle_events(events)
+        self.update_position()
+        self.select_frame()
+        self.create_image()
