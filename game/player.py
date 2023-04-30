@@ -56,7 +56,9 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_RIGHT]:
             self.apply_force(x=0.1)
         if keys[pygame.K_UP]:
-            pass
+            # only jump if player is grounded
+            if self.y == 200 - 32:
+                self.apply_force(y=-0.8)
 
     def spawn(self, x, y):
         self.dx = 0.0
@@ -72,15 +74,15 @@ class Player(pygame.sprite.Sprite):
 
     def apply_force(self, x=0, y=0):
         self.dx += x
+        # limit running velocity
         if self.dx < -0.2:
             self.dx = -0.2
         elif self.dx > 0.2:
             self.dx = 0.2
 
         self.dy += y
-        if self.dy < -0.2:
-            self.dy = -0.2
-        elif self.dy > 0.2:
+        # limit gravity
+        if self.dy > 0.2:
             self.dy = 0.2
 
     def update_position(self, dt):
@@ -112,6 +114,11 @@ class Player(pygame.sprite.Sprite):
             self.y = 200 - 32
         self.rect.y = int(self.y)
 
+        # detect state changes
+        if prev_y != self.y:
+            # jumping/falling
+            self.set_state("jumping")
+
     def world_physics(self):
         # friction
         if self.dx < 0:
@@ -119,7 +126,7 @@ class Player(pygame.sprite.Sprite):
         elif self.dx > 0:
             self.apply_force(x=-0.1)
         # gravity
-        # self.apply_force(y=0.2)
+        self.apply_force(y=0.05)
 
     def select_frame(self, dt):
         # animate
@@ -146,6 +153,8 @@ class Player(pygame.sprite.Sprite):
                 self.frame = "run2"
             elif i == 2:
                 self.frame = "run3"
+        elif self.state == "jumping":
+            self.frame = "jump"
 
         # facing left or right?
         if self.dx < 0:
