@@ -12,6 +12,17 @@ http_file(
 )
 
 #
+# Mario Bros Tileset
+#
+http_file(
+    name = "smb",
+    # http_file names the file itself "downloaded" unless overriden below.
+    downloaded_file_path = "smb.png",
+    sha256 = "b0a522fabea34905faba981f416b486632920828353a501526a3d66008ea456b",
+    url = "https://www.spriters-resource.com/download/52571/",
+)
+
+#
 # Tiled (MacOS)
 #
 http_archive(

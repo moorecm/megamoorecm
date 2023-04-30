@@ -4,7 +4,10 @@ load("@pip//:requirements.bzl", "requirement")
 sh_binary(
     name = "tiled",
     srcs = ["wrappers/tiled.sh"],
-    data = ["@tiled//:all"],
+    data = [
+        "//game:level",
+        "@tiled//:all",
+    ],
 )
 
 py_binary(

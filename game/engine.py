@@ -1,6 +1,7 @@
 import pygame
 
 import player
+import level
 
 
 class Engine:
@@ -9,6 +10,9 @@ class Engine:
         self.screen = pygame.display.set_mode((320, 240), flags=pygame.SCALED)
         self.clock = pygame.time.Clock()
         self.fps = 60
+
+        self.level = level.Level1()
+
         self.players = pygame.sprite.Group()
         self.player = player.Player()
         self.players.add(self.player)
@@ -34,6 +38,8 @@ class Engine:
 
     def draw(self):
         self.screen.fill((0, 0, 0))
+
+        self.level.draw(self.screen)
         self.players.draw(self.screen)
 
         pygame.display.flip()
