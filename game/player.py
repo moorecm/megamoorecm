@@ -58,6 +58,7 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_UP]:
             # only jump if player is grounded
             if self.y == 200 - 32:
+                self.set_state("jumping")
                 self.apply_force(y=-0.8)
 
     def spawn(self, x, y):
@@ -86,6 +87,25 @@ class Player(pygame.sprite.Sprite):
             self.dy = 0.2
 
     def update_position(self, dt):
+        # update y position
+        prev_y = self.y
+        self.y = self.y + self.dy * dt
+        # check y boundaries
+        if self.y < 0:
+            self.y = 0
+        elif self.y > 200 - 32:
+            self.y = 200 - 32
+            if self.state == "jumping":
+                # landed from a jump/fall
+                self.set_state("idle")  # overwritten below
+        self.rect.y = int(self.y)
+
+        # detect state changes
+        if self.state != "jumping":
+            if prev_y != self.y:
+                # started falling
+                self.set_state("jumping")
+
         # update x position
         prev_x = self.x
         self.x = self.x + self.dx * dt
@@ -97,27 +117,13 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = int(self.x)
 
         # detect state changes
-        if prev_x == self.x:
-            # no movement
-            self.set_state("idle")
-        else:
-            # running
-            self.set_state("running")
-
-        # update y position
-        prev_y = self.y
-        self.y = self.y + self.dy * dt
-        # check y boundaries
-        if self.y < 0:
-            self.y = 0
-        elif self.y > 200 - 32:
-            self.y = 200 - 32
-        self.rect.y = int(self.y)
-
-        # detect state changes
-        if prev_y != self.y:
-            # jumping/falling
-            self.set_state("jumping")
+        if self.state != "jumping":
+            if prev_x == self.x:
+                # no movement
+                self.set_state("idle")
+            else:
+                # running
+                self.set_state("running")
 
     def world_physics(self):
         # friction
