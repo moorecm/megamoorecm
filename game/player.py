@@ -27,17 +27,16 @@ class Player(pygame.sprite.Sprite):
                 )
             )
 
+        self.dx = 0.0
+        self.dy = 0.0
+        self.state = None
         self.frame = "ready"
         self.animation_counter = 0
         self.image = self.images[self.frame]
         self.flip = False
 
         # initial position
-        self.spawn(160 - 12, 100 - 16)
-
-        # initial state
-        self.state = None
-        self.set_state("idle")
+        self.spawn(160 - 12, 0)
 
     def handle_events(self, events):
         # singular events (key up, key down, etc.)
@@ -56,14 +55,15 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_RIGHT]:
             self.apply_force(x=0.1)
         if keys[pygame.K_UP]:
-            # only jump if player is grounded
-            if self.y == 200 - 32:
-                self.set_state("jumping")
-                self.apply_force(y=-0.8)
+            if self.state != "spawning" and self.state != "spawned":
+                # only jump if player is grounded
+                if self.y == 200 - 32:
+                    self.set_state("jumping")
+                    self.apply_force(y=-0.8)
 
     def spawn(self, x, y):
-        self.dx = 0.0
-        self.dy = 0.0
+        self.set_state("spawning")
+        self.apply_force(y=0.8)
         self.x = float(x)
         self.y = float(y)
         self.rect = pygame.Rect(x, y, 32, 32)
@@ -82,9 +82,13 @@ class Player(pygame.sprite.Sprite):
             self.dx = 0.2
 
         self.dy += y
-        # limit gravity
-        if self.dy > 0.2:
-            self.dy = 0.2
+        # limit gravity, but let spawning teleport go faster
+        if self.state == "spawning":
+            if self.dy > 0.8:
+                self.dy = 0.8
+        else:
+            if self.dy > 0.2:
+                self.dy = 0.2
 
     def update_position(self, dt):
         # update y position
@@ -95,13 +99,19 @@ class Player(pygame.sprite.Sprite):
             self.y = 0
         elif self.y > 200 - 32:
             self.y = 200 - 32
-            if self.state == "jumping":
+            if self.state == "spawning":
+                self.set_state("spawned")
+            elif self.state == "jumping":
                 # landed from a jump/fall
                 self.set_state("idle")  # overwritten below
         self.rect.y = int(self.y)
 
         # detect state changes
-        if self.state != "jumping":
+        if (
+            self.state != "spawning"
+            and self.state != "spawned"
+            and self.state != "jumping"
+        ):
             if prev_y != self.y:
                 # started falling
                 self.set_state("jumping")
@@ -117,7 +127,11 @@ class Player(pygame.sprite.Sprite):
         self.rect.x = int(self.x)
 
         # detect state changes
-        if self.state != "jumping":
+        if (
+            self.state != "spawning"
+            and self.state != "spawned"
+            and self.state != "jumping"
+        ):
             if prev_x == self.x:
                 # no movement
                 self.set_state("idle")
@@ -161,6 +175,23 @@ class Player(pygame.sprite.Sprite):
                 self.frame = "run3"
         elif self.state == "jumping":
             self.frame = "jump"
+        elif self.state == "spawning":
+            # spawn
+            self.frame = "tele1"
+        elif self.state == "spawned":
+            # animate spawn landing
+            self.animation_counter += dt
+            ms_per_frame = 100
+            number_of_frames = 4
+            i = int(self.animation_counter // ms_per_frame) % number_of_frames
+            if i == 0:
+                self.frame = "tele3"
+            elif i == 1:
+                self.frame = "tele2"
+            elif i == 2:
+                self.frame = "tele1"
+            elif i == 3:
+                self.set_state("ready")
 
         # facing left or right?
         if self.dx < 0:
