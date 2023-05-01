@@ -11,10 +11,12 @@ class Engine:
         self.clock = pygame.time.Clock()
         self.fps = 60
 
-        self.level = level.Level1()
+        self.foreground = pygame.sprite.Group()
+        self.level = level.Level1(group=self.foreground)
 
         self.players = pygame.sprite.Group()
         self.player = player.Player()
+        self.player.rect.clamp_ip(self.screen.get_rect())  # screen boundary
         self.players.add(self.player)
 
     def __del__(self):
@@ -35,6 +37,13 @@ class Engine:
                 self.done = True
 
         self.players.update(dt=dt, events=events)
+
+        collisions = pygame.sprite.groupcollide(
+            self.players, self.foreground, False, False
+        )
+        for sprite, collided_with in collisions.items():
+            for other in collided_with:
+                sprite.collision(dt, other)
 
     def draw(self):
         self.screen.fill((0, 0, 0))

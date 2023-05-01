@@ -41,32 +41,55 @@ class Player(pygame.sprite.Sprite):
     def handle_events(self, events):
         # singular events (key up, key down, etc.)
         for event in events:
-            if event.type == pygame.KEYDOWN:
+            if event.type == pygame.KEYUP:
                 if event.key == pygame.K_RIGHT:
-                    pass
+                    if (
+                        self.state != "spawning"
+                        and self.state != "spawned"
+                        and self.state != "jumping"
+                    ):
+                        self.set_state("idle")
                 elif event.key == pygame.K_LEFT:
-                    pass
-                elif event.key == pygame.K_UP:
-                    pass
+                    if (
+                        self.state != "spawning"
+                        and self.state != "spawned"
+                        and self.state != "jumping"
+                    ):
+                        self.set_state("idle")
         # pressed keys
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
             self.apply_force(x=-0.1)
+            if (
+                self.state != "spawning"
+                and self.state != "spawned"
+                and self.state != "jumping"
+            ):
+                self.set_state("running")
         if keys[pygame.K_RIGHT]:
             self.apply_force(x=0.1)
+            if (
+                self.state != "spawning"
+                and self.state != "spawned"
+                and self.state != "jumping"
+            ):
+                self.set_state("running")
+
         if keys[pygame.K_UP]:
-            if self.state != "spawning" and self.state != "spawned":
-                # only jump if player is grounded
-                if self.y == 240 - 32:
-                    self.set_state("jumping")
-                    self.apply_force(y=-0.8)
+            if (
+                self.state != "spawning"
+                and self.state != "spawned"
+                and self.state != "jumping"
+            ):
+                self.set_state("jumping")
+                self.apply_force(y=-0.8)
 
     def spawn(self, x, y):
         self.set_state("spawning")
         self.apply_force(y=0.8)
         self.x = float(x)
         self.y = float(y)
-        self.rect = pygame.Rect(x, y, 32, 32)
+        self.rect = pygame.Rect(x, y, 32, 24)
 
     def set_state(self, state):
         if self.state != state:
@@ -91,6 +114,9 @@ class Player(pygame.sprite.Sprite):
                 self.dy = 0.2
 
     def update_position(self, dt):
+        """
+        Update sprite position by dt.
+        """
         # update y position
         prev_y = self.y
         self.y = self.y + self.dy * dt
@@ -99,22 +125,7 @@ class Player(pygame.sprite.Sprite):
             self.y = 0
         elif self.y > 240 - 32:
             self.y = 240 - 32
-            if self.state == "spawning":
-                self.set_state("spawned")
-            elif self.state == "jumping":
-                # landed from a jump/fall
-                self.set_state("idle")  # overwritten below
         self.rect.y = int(self.y)
-
-        # detect state changes
-        if (
-            self.state != "spawning"
-            and self.state != "spawned"
-            and self.state != "jumping"
-        ):
-            if prev_y != self.y:
-                # started falling
-                self.set_state("jumping")
 
         # update x position
         prev_x = self.x
@@ -126,19 +137,6 @@ class Player(pygame.sprite.Sprite):
             self.x = 320 - 24
         self.rect.x = int(self.x)
 
-        # detect state changes
-        if (
-            self.state != "spawning"
-            and self.state != "spawned"
-            and self.state != "jumping"
-        ):
-            if prev_x == self.x:
-                # no movement
-                self.set_state("idle")
-            else:
-                # running
-                self.set_state("running")
-
     def world_physics(self):
         # friction
         if self.dx < 0:
@@ -148,7 +146,10 @@ class Player(pygame.sprite.Sprite):
         # gravity
         self.apply_force(y=0.05)
 
-    def select_frame(self, dt):
+    def update_image(self, dt):
+        """
+        Advances animation frames by dt and sets self.image.
+        """
         # animate
         if self.state == "idle":
             # blink periodically
@@ -191,7 +192,7 @@ class Player(pygame.sprite.Sprite):
             elif i == 2:
                 self.frame = "tele1"
             elif i == 3:
-                self.set_state("ready")
+                self.set_state("idle")
 
         # facing left or right?
         if self.dx < 0:
@@ -199,16 +200,36 @@ class Player(pygame.sprite.Sprite):
         elif self.dx > 0:
             self.flip = False
 
-    def create_image(self):
+        # set the image, flipping if necessary
         self.image = (
             pygame.transform.flip(self.images[self.frame], flip_x=True, flip_y=False)
             if self.flip
             else self.images[self.frame]
         )
+        self.rect.width = self.images[self.frame].get_rect().width
+        self.rect.height = self.images[self.frame].get_rect().height
 
-    def update(self, dt, events=()):
+    def update(self, dt, events):
         self.handle_events(events)
         self.update_position(dt)
-        self.select_frame(dt)
-        self.create_image()
+        self.update_image(dt)
         self.world_physics()
+
+    def collision(self, dt, other):
+        if self.dy < 0:  # jumping
+            if self.y < other.rect.bottom:
+                self.y = other.rect.bottom
+                self.rect.y = int(self.y)
+                self.update_image(dt=0)
+        elif self.dy > 0:  # falling
+            if self.y + self.rect.height > other.rect.top:
+                self.y = other.rect.top - self.rect.height
+                self.rect.y = int(self.y)
+                if self.state == "spawning":
+                    self.set_state("spawned")
+                elif self.state == "jumping":
+                    self.set_state("idle")
+                    self.apply_force(
+                        y=0.8
+                    )  ### if collided while jumping up through the block, remove the original jump force
+                self.update_image(dt=0)
