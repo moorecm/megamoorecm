@@ -75,7 +75,7 @@ class Player(pygame.sprite.Sprite):
             ):
                 self.set_state("running")
 
-        if keys[pygame.K_UP]:
+        if keys[pygame.K_UP] or keys[pygame.K_SPACE]:
             if (
                 self.state != "spawning"
                 and self.state != "spawned"

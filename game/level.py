@@ -28,7 +28,8 @@ class Level1:
         for n, layer in enumerate(self.map.layers):
             for x, y, tile in layer.tiles():
                 properties = self.map.get_tile_properties(x, y, n)
-                if properties is not None:
-                    width = properties.get("width")
-                    height = properties.get("height")
-                    surface.blit(tile, (x * width, y * height))
+                # if properties is not None:
+                #    width = properties.get("width")
+                #    height = properties.get("height")
+                #    surface.blit(tile, (x * width, y * height))
+                surface.blit(tile, (x * 16, y * 16))
