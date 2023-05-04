@@ -6,7 +6,7 @@ import player
 class Engine:
     def __init__(self):
         pygame.init()
-        self.screen = pygame.display.set_mode((320, 200), flags=pygame.SCALED)
+        self.screen = pygame.display.set_mode((320, 240), flags=pygame.SCALED)
         self.clock = pygame.time.Clock()
         self.fps = 60
         self.players = pygame.sprite.Group()

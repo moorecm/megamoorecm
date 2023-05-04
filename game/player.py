@@ -57,7 +57,7 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_UP]:
             if self.state != "spawning" and self.state != "spawned":
                 # only jump if player is grounded
-                if self.y == 200 - 32:
+                if self.y == 240 - 32:
                     self.set_state("jumping")
                     self.apply_force(y=-0.8)
 
@@ -97,8 +97,8 @@ class Player(pygame.sprite.Sprite):
         # check y boundaries
         if self.y < 0:
             self.y = 0
-        elif self.y > 200 - 32:
-            self.y = 200 - 32
+        elif self.y > 240 - 32:
+            self.y = 240 - 32
             if self.state == "spawning":
                 self.set_state("spawned")
             elif self.state == "jumping":
