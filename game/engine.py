@@ -64,6 +64,8 @@ class Engine:
             s.fill((0, 127, 0))
             self.overlay.blit(s, (player.rect.x, player.rect.y))
 
+        self.player.post_collisions()
+
     def draw(self):
         self.level.draw(self.screen)
         self.screen.blit(self.overlay, (0, 0))

@@ -118,7 +118,7 @@ class Player(pygame.sprite.Sprite):
         Update sprite position by dt.
         """
         # update y position
-        prev_y = self.y
+        self.prev_y = self.y
         self.y = self.y + self.dy * dt
         # check y boundaries
         if self.y < 0:
@@ -213,23 +213,44 @@ class Player(pygame.sprite.Sprite):
         self.handle_events(events)
         self.update_position(dt)
         self.update_image(dt)
-        self.world_physics()
 
     def collision(self, dt, other):
-        if self.dy < 0:  # jumping
-            if self.y < other.rect.bottom:
-                self.y = other.rect.bottom
-                self.rect.y = int(self.y)
-                self.update_image(dt=0)
-        elif self.dy > 0:  # falling
-            if self.y + self.rect.height > other.rect.top:
-                self.y = other.rect.top - self.rect.height
-                self.rect.y = int(self.y)
-                if self.state == "spawning":
-                    self.set_state("spawned")
-                elif self.state == "jumping":
-                    self.set_state("idle")
-                    self.apply_force(
-                        y=0.8
-                    )  ### if collided while jumping up through the block, remove the original jump force
-                self.update_image(dt=0)
+        """
+        Handle collisions.
+
+        Eject the sprite from the collision in the opposite direction of the collision.
+        """
+        if abs(self.y + self.rect.height - other.rect.top) < 16 and self.dy > 0:
+            self.y = other.rect.top - self.rect.height
+            if self.state == "spawning":
+                self.set_state("spawned")
+            elif self.state == "jumping":
+                self.set_state("idle")
+            self.update_position(dt=0)  # set rect.x and rect.y
+            self.update_image(dt=0)  # set image, rect.width, and rect.height
+
+        if (
+            abs(self.y - other.rect.bottom) < 16 and self.dy < 0
+        ):  # TODO make this apply to solid blocks?
+            self.y = other.rect.bottom
+            self.update_position(dt=0)  # set rect.x and rect.y
+            self.update_image(dt=0)  # set image, rect.width, and rect.height
+
+        if self.rect.colliderect(other):  # unless the above resolved the collision,
+            if abs(self.x + self.rect.width - other.rect.left) < 16 and self.dx > 0:
+                self.x = other.rect.left - self.rect.width
+                self.update_position(dt=0)  # set rect.x and rect.y
+                self.update_image(dt=0)  # set image, rect.width, and rect.height
+
+            if abs(self.x - other.rect.right) < 16 and self.dx < 0:
+                self.x = other.rect.right
+                self.update_position(dt=0)  # set rect.x and rect.y
+                self.update_image(dt=0)  # set image, rect.width, and rect.height
+
+    def post_collisions(self):
+        # detect falling
+        if self.state != "spawning" and self.state != "spawned":
+            if self.prev_y < self.y:
+                self.set_state("jumping")
+
+        self.world_physics()
