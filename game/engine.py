@@ -7,7 +7,13 @@ import level
 class Engine:
     def __init__(self):
         pygame.init()
+        # screen buffer
         self.screen = pygame.display.set_mode((320, 240), flags=pygame.SCALED)
+        # transparent overlay for debugging
+        self.overlay = self.screen.copy()
+        self.overlay.set_alpha(127)
+        self.overlay.set_colorkey((0, 0, 0))
+
         self.clock = pygame.time.Clock()
         self.fps = 60
 
@@ -41,17 +47,29 @@ class Engine:
         collisions = pygame.sprite.groupcollide(
             self.players, self.foreground, False, False
         )
-        for sprite, collided_with in collisions.items():
+        for player, collided_with in collisions.items():
             for other in collided_with:
-                sprite.collision(dt, other)
+                # highlight blocks in yellow
+                s = pygame.Surface((other.rect.width, other.rect.height))
+                s.fill((255, 255, 0))
+                self.overlay.blit(s, (other.rect.x, other.rect.y))
+                # inform the player
+                player.collision(dt, other)
+            # highlight player adjusted position in green
+            s = pygame.Surface((player.rect.width, player.rect.height))
+            s.fill((0, 127, 0))
+            self.overlay.blit(s, (player.rect.x, player.rect.y))
 
     def draw(self):
-        self.screen.fill((0, 0, 0))
-
         self.level.draw(self.screen)
+        self.screen.blit(self.overlay, (0, 0))
         self.players.draw(self.screen)
 
         pygame.display.flip()
+
+        # reset buffers
+        self.screen.fill((0, 0, 0))
+        self.overlay.fill((0, 0, 0))
 
     def loop(self):
         self.done = False
