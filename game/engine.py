@@ -11,7 +11,7 @@ class Engine:
         self.screen = pygame.display.set_mode((320, 240), flags=pygame.SCALED)
         # transparent overlay for debugging
         self.overlay = self.screen.copy()
-        self.overlay.set_alpha(127)
+        self.overlay.set_alpha(0)
         self.overlay.set_colorkey((0, 0, 0))
 
         self.clock = pygame.time.Clock()
@@ -35,12 +35,16 @@ class Engine:
             events = pygame.event.get()
 
         for event in events:
-            if (
-                event.type == pygame.QUIT
-                or event.type == pygame.KEYDOWN
-                and event.key == pygame.K_ESCAPE
-            ):
+            if event.type == pygame.QUIT:
                 self.done = True
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    self.done = True
+                elif event.key == pygame.K_d:  # d to show debugging overlay
+                    if self.overlay.get_alpha() == 0:
+                        self.overlay.set_alpha(127)
+                    else:
+                        self.overlay.set_alpha(0)
 
         self.players.update(dt=dt, events=events)
 
